@@ -1,5 +1,5 @@
 #Various constants and enums used by MFC.  Most of these values can be seen here:
-#http:#www.myfreecams.com/_js/mfccore.js
+#http://www.myfreecams.com/_js/mfccore.js
 from enum import Enum
 MAGIC = -2027771214;
 
@@ -23,6 +23,9 @@ class STATE(Enum):
     #NULL = 126             #Unused?
     Offline = 127           #OFFLINE
 
+class CLIENT(Enum):
+    VERSION_REQUIRED = 20060925
+
 class DISPLAY(Enum):
     PM_INLINE_WHISPER = 1
     PM_INLINE_ALL = 2
@@ -41,6 +44,11 @@ class EVSESSION(Enum):
     UPDATE = 103
     STOP = 104
 
+class EVUP(Enum):
+    NONE = 0
+    DIFF = 1
+    FULL = 2
+
 class FCACCEPT(Enum):
     NOBODY = 0
     FRIENDS = 1
@@ -50,7 +58,29 @@ class FCACCEPT(Enum):
     V2_MODELS = 32
     V2_PREMIUMS = 64
     V2_BASICS = 128
-    V2_ALL = 240
+    V2_BOOKMARKS = 256
+    V2_TOPFRIENDS = 512
+
+class FCACT(Enum):
+    CHAN_TIP = 1006
+    CHAN_BAN = 1011
+    CHAN_UNBAN = 1012
+    CHAN_JOIN = 1051
+    CHAN_PART = 1052
+    CHAN_TOPIC = 1061
+    CHAN_WHITEBOARD_ON = 1101
+    CHAN_WHITEBOARD_OFF = 1102
+    LOGIN = 8001
+    LOGOUT = 8002
+
+class FCAPP(Enum):
+    NONE = 0
+    MASTER = 1
+    CHAT = 2
+    WORKER = 3
+    AUTH = 4
+    LOADTEST = 5
+    TRANSCODER = 6
 
 class FCBAN(Enum):
     NONE = 0
@@ -60,18 +90,36 @@ class FCBAN(Enum):
 
 class FCCHAN(Enum):
     NOOPT = 0
+    EVENT_NONE = 0
     JOIN = 1
+    EVENT_CLEARCHAT = 1
     PART = 2
     ERR_NOCHANNEL = 2
+    EVENT_MUTE = 2
     ERR_NOTMEMBER = 3
-    ERR_GUESTMUTE = 4
+    EVENT_TOPIC = 3
     OLDMSG = 4
+    ERR_GUESTMUTE = 4
+    EVENT_COUNTDOWN = 4
     ERR_GROUPMUTE = 5
+    EVENT_KICK = 5
     ERR_NOTALLOWED = 6
-    ERR_CONTENT = 7
+    EVENT_RESERVED_001 = 6
+    EVENT_RESERVED_002 = 7
     HISTORY = 8
-    CAMSTATE = 16
+    EVENT_RESERVED_003 = 8
+    EVENT_RESERVED_004 = 9
+    EVENT_RESERVED_005 = 10
+    EVENT_RESERVED_006 = 11
+    EVENT_RESERVED_007 = 12
+    EVENT_RESERVED_008 = 13
+    EVENT_RESERVED_009 = 14
+    EVENT_RESERVED_010 = 15
     LIST = 16
+    EVENT_RESERVED_011 = 16
+    CAMSTATE = 16
+    EVENT_RESERVED_012 = 17
+    EVENT_RESERVED_013 = 18
     WELCOME = 32
     BATCHPART = 64
     EXT_USERNAME = 128
@@ -90,6 +138,38 @@ class FCGROUP(Enum):
     DECLINED = 4
     UNAVAILABLE = 5
     SESSION = 9
+
+class FCL(Enum):
+    NULL = 0
+    FRIENDS = 1
+    IGNORES = 2
+    BOOKMARKS = 3
+    HIDDEN = 4
+    HPFRIENDS = 5
+    TOPFRIENDS = 6
+    NEWS_SUBS = 7
+    NEWS_HIDDEN = 8
+    MYWEBCAM_ALLOW = 9
+    MYWEBCAM_DENY = 10
+    BLOCKS_STATES = 11
+    BLOCKS_COUNTRIES = 12
+    ROOMFILTERS = 13
+    BANS = 14
+    MUTES = 15
+    RESERVED_16 = 16
+    RESERVED_17 = 17
+    RESERVED_18 = 18
+    RESERVED_19 = 19
+    TAGS = 20
+    CAMS = 21
+    ROOMMATES = 22
+    RESERVED_23 = 23
+    RESERVED_24 = 24
+    RESERVED_25 = 25
+    RESERVED_26 = 26
+    RESERVED_27 = 27
+    RESERVED_28 = 28
+    RESERVED_29 = 29
 
 class FCLEVEL(Enum):
     GUEST = 0
@@ -116,8 +196,8 @@ class FCNEWSOPT(Enum):
     NONE = 0
     IN_CHAN = 1
     IN_PM = 2
-    ADDFRIENDS_OFF = 4
     AUTOFRIENDS_OFF = 4
+    ADDFRIENDS_OFF = 4
     IN_CHAN_NOPVT = 8
     IN_CHAN_NOGRP = 16
 
@@ -144,8 +224,23 @@ class FCOPT(Enum):
     MODELSW = 2048
     GUESTMUTE = 4096
     BASICMUTE = 8192
-    BOOKMARK = 16384
     SMALLCAPS = 16384
+    XMPP = 32768
+    WHITEBOARD1 = 65536
+    WHITEBOARD2 = 131072
+
+class FCPORT(Enum):
+    EDGE_POLICY = 843
+    MASTER_EDGE = 4000
+    MASTER_AUTH = 4001
+    AUTH_DATAGRAM = 4002
+    MASTER_WORKER = 4003
+    EDGE_WORKER = 4004
+    EDGE_CLIENT1 = 5001
+    EDGE_AJAX = 8080
+    EDGE_CLIENT3 = 8100
+    EDGE_WEBSOCKGW = 8101
+    EDGE_CLIENT2 = 8550
 
 class FCRESPONSE(Enum):
     SUCCESS = 0
@@ -161,25 +256,45 @@ class FCRESPONSE(Enum):
     INVALIDUSER = 10
     NOACCESS = 11
     NOSPACE = 12
+    INVALIDREQ = 13
+    INVALIDARG = 14
+    NOTFOUND = 15
+    INSUFFICIENT = 16
 
-class FCSERV(Enum):
+class FCRPC(Enum):
     NONE = 0
-    VIDEO_CAM2CAM = 1
-    VIDEO_MODEL = 2
-    VIDEO_RESV2 = 4
-    VIDEO_RESV3 = 8
-    CHAT_MASTER = 16
-    CHAT_SLAVE = 32
-    CHAT_RESV2 = 64
-    CHAT_RESV3 = 128
-    AUTH = 256
-    AUTH_RESV1 = 512
-    AUTH_RESV2 = 1024
-    AUTH_RESV3 = 2048
-    TRANS = 4096
-    TRANS_RESV1 = 8192
-    TRANS_RESV2 = 16384
-    TRANS_RESV3 = 32768
+    UPDATEFRIEND = 1
+    UPDATEIGNORE = 2
+    RESLOADED = 3
+    W_READY = 4
+    W_OFFLINEQUERY = 5
+    W_FRIENDLIST = 6
+    W_IGNORELIST = 7
+    W_EXT_REQUEST = 8
+    W_EXT_RESPONSE = 9
+
+class FCS(Enum):
+    SUBSCRIBE = 1
+    SYNC = 2
+    SESSION = 10
+    BAN = 11
+    MODEL = 12
+    EVENT = 13
+    EVENT2 = 14
+    EXTDATA = 15
+    GWCONNECT = 16
+    MUTE = 18
+    AUTHREQ = 100
+    BANREQ = 101
+    EVENTREQ = 102
+    EVENTRESP = 103
+    SENDEVENT = 104
+    SENDEVENT2 = 105
+
+class FCSBAN(Enum):
+    NONE = 0
+    USER = 1
+    IP = 2
 
 class FCTYPE(Enum):
     CLIENT_DISCONNECTED = -5
@@ -198,11 +313,9 @@ class FCTYPE(Enum):
     PRIVACY = 8
     ADDFRIENDREQ = 9
     USERNAMELOOKUP = 10
-    BROADCASTPROFILE = 11
     ZBAN = 11
     BROADCASTNEWS = 12
     ANNOUNCE = 13
-    MANAGELISTS = 14
     MANAGELIST = 14
     INBOX = 15
     GWCONNECT = 16
@@ -220,6 +333,7 @@ class FCTYPE(Enum):
     SETTING = 28
     BWSTATS = 29
     SETGUESTNAME = 30
+    TKX = 30
     SETTEXTOPT = 31
     SERVERCONFIG = 32
     MODELGROUP = 33
@@ -252,7 +366,6 @@ class FCTYPE(Enum):
     UNBAN = 60
     SETWELCOME = 61
     CHANOP = 62
-    PERMABAN = 62
     LISTCHAN = 63
     TAGS = 64
     SETPCODE = 65
@@ -272,6 +385,8 @@ class FCTYPE(Enum):
     STATEDUMP = 79
     RECOMMEND = 80
     EXTDATA = 81
+    NOTIFY = 84
+    PUBLISH = 85
     ZGWINVALID = 95
     CONNECTING = 96
     CONNECTED = 97
@@ -279,8 +394,8 @@ class FCTYPE(Enum):
     LOGOUT = 99
 
 class FCUCR(Enum):
-    CREATOR = 0
     VM_LOUNGE = 0
+    CREATOR = 0
     VM_MYWEBCAM = 1
     FRIENDS = 1
     MODELS = 2
@@ -293,6 +408,9 @@ class FCUPDATE(Enum):
     NONE = 0
     MISSMFC = 1
     NEWTIP = 2
+    REGION_SAFE = 3
+    CAMSCORE = 4
+    ROOMFILTER = 5
 
 class FCVIDEO(Enum):
     TX_IDLE = 0
@@ -310,8 +428,15 @@ class FCVIDEO(Enum):
     RX_VOY = 92
     RX_GRP = 93
     NULL = 126
-    UNKNOWN = 127
     OFFLINE = 127
+    UNKNOWN = 127
+
+class FCW(Enum):
+    STATE_INIT = 0
+    STATE_READY = 1
+    STATE_WORKING = 2
+    STATE_WAITING = 3
+    STATE_INVALID = 4
 
 class FCWINDOW(Enum):
     NO_USER_PM = 20
@@ -349,6 +474,9 @@ class LOUNGE(Enum):
     MASK_NO_CAMSNAPS = 2
     MASK_LOUNGE_MODE = 4
 
+class MAX(Enum):
+    FCL = 30
+
 class MODEL(Enum):
     LIST_ICON_NEW_MODEL = 1
     LIST_ICON_RECOMMEND = 2
@@ -356,6 +484,9 @@ class MODEL(Enum):
     LIST_ICON_RECENT = 8
     LIST_ICON_MISSMFC = 16
     LIST_ICON_TRENDING = 32
+    LIST_ICON_CUSTOM_ALERTS = 64
+    VERSION_REQUIRED = 220130324
+    VERSION_MODELWEB = 320110101
 
 class MODELORDER(Enum):
     NONE = 0
@@ -373,6 +504,24 @@ class MYWEBCAM(Enum):
     ONLYMODELS = 3
     FRIENDSANDMODELS = 4
     WHITELIST = 5
+    FRIEND_ID = 100
+
+class PLAT(Enum):
+    MFC = 1
+    CAM = 2
+
+class PLATFORM(Enum):
+    NONE = 0
+    MFC = 1
+    CAMMUNITY = 2
+
+class SERVER(Enum):
+    VERSION = 20071218
+    VERSION_REQUIRED = 20071218
+
+class SESSION(Enum):
+    ID_START = 75000000
+    ID_END = 950000000
 
 class TKOPT(Enum):
     NONE = 0
@@ -391,13 +540,30 @@ class TKOPT(Enum):
     TIP_FROMROOM = 16384
     TIP_PUBLICMSG = 32768
     TIP_HISTORY = 65536
+    TIP_SILENT = 131072
+    TIP_NOCOUNT = 262144
     HDVIDEO = 1048576
+
+class USER(Enum):
+    ID_START = 100
+    ID_END = 50000000
 
 class USEREXT(Enum):
     NUM = 0
     STRING = 1
     DATA = 2
     STAMP = 3
+
+class V1(Enum):
+    FLV = 0
+    F4V = 1
+
+class V2(Enum):
+    NONE = 2
+    FLV = 4
+    F4V = 8
+    MP4X = 16
+    MP4W = 32
 
 class WEBCAM(Enum):
     SECURITY_EVERYONE = 0
@@ -409,8 +575,12 @@ class WEBCAM(Enum):
 
 class WINDOW(Enum):
     MODE_DEFAULT = 0
-    MODE_DESKTOP_DHTML = 1
     MODE_DHTML = 1
+    MODE_DESKTOP_DHTML = 1
     MODE_BROWSER = 2
     MODE_MOBILE_DHTML = 2
+
+class WORKER(Enum):
+    ID_START = 50000000
+    ID_END = 75000000
 

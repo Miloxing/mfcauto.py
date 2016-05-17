@@ -24,7 +24,7 @@ class Packet:
     def aboutmodel(self):
         if self._aboutModel == None:
             mid = -1
-            if self.fctype in (FCTYPE.ADDFRIEND, FCTYPE.ADDIGNORE, FCTYPE.JOINCHAN, FCTYPE.STATUS, FCTYPE.CHATFLASH, FCTYPE.BROADCASTPROFILE):
+            if self.fctype in (FCTYPE.ADDFRIEND, FCTYPE.ADDIGNORE, FCTYPE.JOINCHAN, FCTYPE.STATUS, FCTYPE.CHATFLASH, FCTYPE.ZBAN):
                 mid = self.narg1
             elif self.fctype in (FCTYPE.SESSIONSTATE, FCTYPE.LISTCHAN):
                 mid = self.narg2

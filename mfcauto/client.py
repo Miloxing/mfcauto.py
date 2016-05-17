@@ -9,7 +9,7 @@ import traceback
 from threading import RLock
 from .event_emitter import EventEmitter
 from .packet import Packet
-from .constants import MAGIC, FCTYPE, FCCHAN
+from .constants import MAGIC, FCTYPE, FCCHAN, FCWOPT, FCL
 from .model import Model
 from .utils import log
 
@@ -100,8 +100,8 @@ class Client(EventEmitter):
                 self.username = packet.smessage
                 log.info("Login handshake completed. Logged in as '{}' with sessionId {}".format(self.username, self.session_id))
         elif fctype in (FCTYPE.DETAILS, FCTYPE.ROOMHELPER, FCTYPE.SESSIONSTATE, FCTYPE.ADDFRIEND, FCTYPE.ADDIGNORE, FCTYPE.CMESG, FCTYPE.PMESG, FCTYPE.TXPROFILE, FCTYPE.USERNAMELOOKUP, FCTYPE.MYCAMSTATE, FCTYPE.MYWEBCAM):
-            if not ((fctype == FCTYPE.DETAILS and packet.nfrom == FCTYPE.TOKENINC) or (fctype == FCTYPE.ROOMHELPER and packet.narg2 < 100) or (fctype == FCTYPE.JOINCHAN and packet.narg2 == FCCHAN.PART)):
-                if type(packet.smessage) == dict:
+            if not ((fctype == FCTYPE.DETAILS and packet.nfrom == FCTYPE.TOKENINC.value) or (fctype == FCTYPE.ROOMHELPER and packet.narg2 < 100) or (fctype == FCTYPE.JOINCHAN and packet.narg2 == FCCHAN.PART.value)):
+                if isinstance(packet.smessage,dict):
                     lv = packet.smessage.setdefault("lv",None)
                     uid = packet.smessage.setdefault("uid",None)
                     if uid is None:
@@ -111,7 +111,7 @@ class Client(EventEmitter):
                         if possiblemodel != None:
                             possiblemodel.mergepacket(packet)
         elif fctype == FCTYPE.TAGS:
-            if type(packet.smessage) == dict:
+            if isinstance(packet.smessage,dict):
                 #Sometimes TAGS are so long that they're malformed JSON.
                 #For now, just ignore those cases.
                 for key in packet.smessage:
@@ -121,15 +121,45 @@ class Client(EventEmitter):
             pass
         elif fctype == FCTYPE.METRICS:
             if not (self._completedFriends and self._completedModels):
-                if packet.nto == 2:
+                if packet.nto == FCTYPE.ADDFRIEND:
                     if packet.narg1 != packet.narg2:
                         self._completedFriends = False
                     else:
                         self._completedFriends = True
-                if packet.nto == 20 and packet.narg1 == packet.narg2:
+                if packet.nto == FCTYPE.SESSIONSTATE and packet.narg1 == packet.narg2:
                     self._completedModels = True
                 if self._completedModels and self._completedFriends:
                     self.emit(FCTYPE.CLIENT_MODELSLOADED)
+        elif fctype == FCTYPE.EXTDATA:
+            if packet.nto == self.session_id and packet.narg2 == FCWOPT.REDIS_JSON.value:
+                self._handle_extdata(packet.smessage)
+        elif fctype == FCTYPE.MANAGELIST:
+            if packet.narg2 > 0 and "rdata" in packet.smessage:
+                rdata = self._process_list(packet.smessage["rdata"])
+                ntype = packet.narg2
+                if ntype == FCL.ROOMMATES.value and isinstance(rdata,list):
+                    self._process_packet(Packet(FCTYPE.METRICS, packet.nfrom, FCTYPE.JOINCHAN, 0, len(rdata)))
+                    for record in rdata:
+                        self._process_packet(Packet(FCTYPE.JOINCHAN, packet.nfrom, packet.nto, packet.smessage.setdefault("channel", None), packet.narg2, record))
+                    self._process_packet(Packet(FCTYPE.METRICS, packet.nfrom, FCTYPE.JOINCHAN, len(rdata), len(rdata)))
+                elif ntype == FCL.CAMS.value and isinstance(rdata,list):
+                    self._process_packet(Packet(FCTYPE.METRICS, packet.nfrom, FCTYPE.SESSIONSTATE, 0, len(rdata)))
+                    for record in rdata:
+                        self._process_packet(Packet(FCTYPE.SESSIONSTATE, packet.nfrom, packet.nto, packet.narg1, record.setdefault("uid", 0), record))
+                    self._process_packet(Packet(FCTYPE.METRICS, packet.nfrom, FCTYPE.SESSIONSTATE, len(rdata), len(rdata)))
+                elif ntype == FCL.FRIENDS.value and isinstance(rdata,list):
+                    self._process_packet(Packet(FCTYPE.METRICS, packet.nfrom, FCTYPE.ADDFRIEND, 0, len(rdata)))
+                    for record in rdata:
+                        self._process_packet(Packet(FCTYPE.ADDFRIEND, packet.nfrom, packet.nto, record.setdefault("uid", 0), packet.narg2, record))
+                    self._process_packet(Packet(FCTYPE.METRICS, packet.nfrom, FCTYPE.ADDFRIEND, len(rdata), len(rdata)))
+                elif ntype == FCL.IGNORES.value and isinstance(rdata,list):
+                    self._process_packet(Packet(FCTYPE.METRICS, packet.nfrom, FCTYPE.ADDIGNORE, 0, len(rdata)))
+                    for record in rdata:
+                        self._process_packet(Packet(FCTYPE.ADDIGNORE, packet.nfrom, packet.nto, record.setdefault("uid", 0), packet.narg2, record))
+                    self._process_packet(Packet(FCTYPE.METRICS, packet.nfrom, FCTYPE.ADDIGNORE, len(rdata), len(rdata)))
+                elif ntype == FCL.TAGS.value:
+                    if isinstance(rdata,dict):
+                        self._process_packet(Packet(FCTYPE.TAGS, packet.nfrom, packet.nto, packet.narg1, packet.narg2, rdata))
     def _get_servers(self):
         if self.server_config is None:
             with urllib.request.urlopen('http://www.myfreecams.com/_js/serverconfig.js') as req:
@@ -151,13 +181,15 @@ class Client(EventEmitter):
         self.loop.call_soon(self.emit,FCTYPE.CLIENT_CONNECTED)
     def disconnect(self):
         """Disconnects from the MFC chat server and closes the underlying transport"""
-        if self.keepalive != None:
-            self.keepalive.cancel()
-            self.keepalive = None
         self._manual_disconnect = True
         self.transport.close()
     def _disconnected(self):
         """Handles disconnect events from the underlying MFCProtocol instance, reconnecting as needed"""
+        if self.keepalive != None:
+            self.keepalive.cancel()
+            self.keepalive = None
+        if self.password == "guest" and self.username.startswith("Guest"):
+            self.username = "guest"
         if not self._manual_disconnect:
             print("Disconnected from MyFreeCams.  Reconnecting in 30 seconds...")
             self.loop.call_later(30, self.connect, self._logged_in)
@@ -177,6 +209,43 @@ class Client(EventEmitter):
         self.transport.write(data)
     def tx_packet(self, packet):
         self.tx_cmd(packet.fctype, packet.nto, packet.narg1, packet.narg2, packet.smessage)
+    def _handle_extdata(self, extdata):
+        if extdata != None and "respkey" in extdata:
+            url = "http://www.myfreecams.com/php/FcwExtResp.php?";
+            for name in ["respkey", "type", "opts", "serv"]:
+                if name in extdata:
+                    url += "{}={}&".format(name, extdata.setdefault(name, None))
+            with urllib.request.urlopen(url) as req:
+                contents = json.loads(req.read().decode('utf-8'))
+                packet = Packet(extdata["msg"]["type"], extdata["msg"]["from"], extdata["msg"]["to"], extdata["msg"]["arg1"], extdata["msg"]["arg2"], contents)
+                self._process_packet(packet)
+    def _process_list(self, data):
+        if (type(data) == list):
+            result = []
+            schema = data[0]
+            schemaMap = []
+            for path1 in schema:
+                if type(path1) == dict:
+                    for key in path1:
+                        for path2 in path1[key]:
+                            schemaMap.append([key, path2])
+                elif type(path1) == str:
+                    schemaMap.append([path1])
+            for record in data[1:]:
+                if isinstance(record, list):
+                    msg = {}
+                    for i in range(len(record)):
+                        path = schemaMap[i]
+                        if len(path) == 1:
+                            msg[path[0]] = record[i]
+                        else:
+                            msg.setdefault(path[0], {})[path[1]] = record[i]
+                    result.append(msg)
+                elif isinstance(record, dict):
+                    result.append(msg)
+            return result
+        else:
+            return data
     @staticmethod
     def touserid(uid):
         if uid > 100000000:

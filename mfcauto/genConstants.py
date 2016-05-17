@@ -6,7 +6,7 @@ constantRe = re.compile(r'(\s|;?|,)(FCS|w)\.([A-Z0-9]+)_([A-Z0-9_]+)\s+?=\s+?([0
 constantMap = dict()
 
 header = """#Various constants and enums used by MFC.  Most of these values can be seen here:
-#http:#www.myfreecams.com/_js/mfccore.js
+#http://www.myfreecams.com/_js/mfccore.js
 from enum import Enum
 MAGIC = -2027771214;
 

@@ -123,12 +123,9 @@ class Model(EventEmitter):
     def _purgeoldsessions(self):
         with self._lock:
             for key in set(self.knownsessions.keys()):
-                if "vs" not in self.knownsessions[key] or FCVIDEO(self.knownsessions[key]["vs"])==FCVIDEO.OFFLINE.value:
+                if "vs" not in self.knownsessions[key] or FCVIDEO(self.knownsessions[key]["vs"])==FCVIDEO.OFFLINE:
                     del self.knownsessions[key]
     def reset(self):
-        if self.uid == -500: # Ignore the fake 'All' model
-            return
-
         with self._lock:
             for key in set(self.knownsessions.keys()):
                 if key != self.bestsessionid and self.knownsessions[key]["vs"] != FCVIDEO.OFFLINE.value:
@@ -140,7 +137,8 @@ class Model(EventEmitter):
     def reset_all():
         with _knownmodels_lock:
             for model in _knownmodels.values():
-                model.reset()
+                if model.uid != -500: # Ignore the fake 'All' model
+                    model.reset()
     def when(self, condition, ontrue, onfalseaftertrue):
         pass #@TODO
     @staticmethod
