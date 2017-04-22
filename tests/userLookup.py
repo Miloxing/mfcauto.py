@@ -34,7 +34,7 @@ async def main(loop):
         print("User not found")
     else:
         state_string = str(STATE(msg["vs"]))
-        if msg["vs"] == STATE.Private.value:
+        if msg["vs"] == STATE.Private:
             # If the model is in private, query her details to determine if it's a true private or not
             m = Model.get_model(msg["uid"])
             if m.in_true_private:

@@ -7,12 +7,12 @@ constantMap = dict()
 
 header = """#Various constants and enums used by MFC.  Most of these values can be seen here:
 #http://www.myfreecams.com/_js/mfccore.js
-from enum import Enum
+from enum import IntEnum
 MAGIC = -2027771214;
 
 #STATE is essentially the same as FCVIDEO but has friendly names
 #for better log messages and code readability
-class STATE(Enum):
+class STATE(IntEnum):
     FreeChat = 0            #TX_IDLE
     #TX_RESET = 1           #Unused?
     Away = 2                #TX_AWAY
@@ -48,7 +48,7 @@ with urlopen(url) as data:
     with open("constants.py", "w") as f:
         f.write(header)
         for fctype in sorted(constantMap):
-            f.write("\nclass {}(Enum):\n".format(fctype))
+            f.write("\nclass {}(IntEnum):\n".format(fctype))
             for subtype, value in sorted(constantMap[fctype].items(), key=lambda x: int(x[1])):
                 f.write("    {} = {}\n".format(subtype.replace("60DAY","SIXTYDAY"), value))
             #f.write("\n")

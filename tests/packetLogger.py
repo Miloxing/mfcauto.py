@@ -16,7 +16,7 @@ if __name__ == "__main__":
     c = SimpleClient()
 
     def on_connected():
-        models = Model.find_models(lambda m: m.bestsession["vs"] == STATE.FreeChat.value)
+        models = Model.find_models(lambda m: m.bestsession["vs"] == STATE.FreeChat)
         models.sort(key=lambda m: m.bestsession["rc"], reverse=True)
         for model in models[:2]:
             print("Joining {}'s room".format(model.nm))

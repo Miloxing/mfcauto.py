@@ -12,7 +12,7 @@ def main():
 
     loggers = dict()
     def on_connected():
-        models = Model.find_models(lambda m: m.bestsession["vs"] == STATE.FreeChat.value)
+        models = Model.find_models(lambda m: m.bestsession["vs"] == STATE.FreeChat)
         models.sort(key=lambda m: m.bestsession["rc"], reverse=True)
         for model in models[:5]:
             loggers[model.nm] = createLogger(model.nm)

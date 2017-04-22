@@ -1,11 +1,11 @@
 #Various constants and enums used by MFC.  Most of these values can be seen here:
 #http://www.myfreecams.com/_js/mfccore.js
-from enum import Enum
+from enum import IntEnum
 MAGIC = -2027771214;
 
 #STATE is essentially the same as FCVIDEO but has friendly names
 #for better log messages and code readability
-class STATE(Enum):
+class STATE(IntEnum):
     FreeChat = 0            #TX_IDLE
     #TX_RESET = 1           #Unused?
     Away = 2                #TX_AWAY
@@ -23,14 +23,14 @@ class STATE(Enum):
     #NULL = 126             #Unused?
     Offline = 127           #OFFLINE
 
-class CLIENT(Enum):
+class CLIENT(IntEnum):
     VERSION_REQUIRED = 20060925
 
-class DISPLAY(Enum):
+class DISPLAY(IntEnum):
     PM_INLINE_WHISPER = 1
     PM_INLINE_ALL = 2
 
-class EVSESSION(Enum):
+class EVSESSION(IntEnum):
     NONE = 0
     PRIVATE = 1
     VOYEUR = 2
@@ -44,12 +44,12 @@ class EVSESSION(Enum):
     UPDATE = 103
     STOP = 104
 
-class EVUP(Enum):
+class EVUP(IntEnum):
     NONE = 0
     DIFF = 1
     FULL = 2
 
-class FCACCEPT(Enum):
+class FCACCEPT(IntEnum):
     NOBODY = 0
     FRIENDS = 1
     ALL = 2
@@ -61,7 +61,7 @@ class FCACCEPT(Enum):
     V2_BOOKMARKS = 256
     V2_TOPFRIENDS = 512
 
-class FCACT(Enum):
+class FCACT(IntEnum):
     CHAN_TIP = 1006
     CHAN_BAN = 1011
     CHAN_UNBAN = 1012
@@ -73,7 +73,7 @@ class FCACT(Enum):
     LOGIN = 8001
     LOGOUT = 8002
 
-class FCAPP(Enum):
+class FCAPP(IntEnum):
     NONE = 0
     MASTER = 1
     CHAT = 2
@@ -82,13 +82,13 @@ class FCAPP(Enum):
     LOADTEST = 5
     TRANSCODER = 6
 
-class FCBAN(Enum):
+class FCBAN(IntEnum):
     NONE = 0
     TEMP = 1
     SIXTYDAY = 2
     LIFE = 3
 
-class FCCHAN(Enum):
+class FCCHAN(IntEnum):
     NOOPT = 0
     EVENT_NONE = 0
     JOIN = 1
@@ -125,12 +125,12 @@ class FCCHAN(Enum):
     EXT_USERNAME = 128
     EXT_USERDATA = 256
 
-class FCERRTYPE(Enum):
+class FCERRTYPE(IntEnum):
     INVALIDUSER = 10
     NOACCESS = 11
     NOSPACE = 12
 
-class FCGROUP(Enum):
+class FCGROUP(IntEnum):
     NONE = 0
     EXPIRED = 1
     BUSY = 2
@@ -139,7 +139,7 @@ class FCGROUP(Enum):
     UNAVAILABLE = 5
     SESSION = 9
 
-class FCL(Enum):
+class FCL(IntEnum):
     NULL = 0
     FRIENDS = 1
     IGNORES = 2
@@ -171,19 +171,19 @@ class FCL(Enum):
     RESERVED_28 = 28
     RESERVED_29 = 29
 
-class FCLEVEL(Enum):
+class FCLEVEL(IntEnum):
     GUEST = 0
     BASIC = 1
     PREMIUM = 2
     MODEL = 4
     ADMIN = 5
 
-class FCMODE(Enum):
+class FCMODE(IntEnum):
     NOPM = 0
     FRIENDPM = 1
     ALLPM = 2
 
-class FCMODEL(Enum):
+class FCMODEL(IntEnum):
     NONE = 0
     NOGROUP = 1
     FEATURE1 = 2
@@ -192,7 +192,7 @@ class FCMODEL(Enum):
     FEATURE4 = 16
     FEATURE5 = 32
 
-class FCNEWSOPT(Enum):
+class FCNEWSOPT(IntEnum):
     NONE = 0
     IN_CHAN = 1
     IN_PM = 2
@@ -201,14 +201,14 @@ class FCNEWSOPT(Enum):
     IN_CHAN_NOPVT = 8
     IN_CHAN_NOGRP = 16
 
-class FCNOSESS(Enum):
+class FCNOSESS(IntEnum):
     NONE = 0
     PVT = 1
     GRP = 2
     TRUEPVT = 4
     TOKEN_MIN = 8
 
-class FCOPT(Enum):
+class FCOPT(IntEnum):
     NONE = 0
     BOLD = 1
     ITALICS = 2
@@ -229,7 +229,7 @@ class FCOPT(Enum):
     WHITEBOARD1 = 65536
     WHITEBOARD2 = 131072
 
-class FCPORT(Enum):
+class FCPORT(IntEnum):
     EDGE_POLICY = 843
     MASTER_EDGE = 4000
     MASTER_AUTH = 4001
@@ -242,7 +242,7 @@ class FCPORT(Enum):
     EDGE_WEBSOCKGW = 8101
     EDGE_CLIENT2 = 8550
 
-class FCRESPONSE(Enum):
+class FCRESPONSE(IntEnum):
     SUCCESS = 0
     ERROR = 1
     NOTICE = 2
@@ -261,7 +261,7 @@ class FCRESPONSE(Enum):
     NOTFOUND = 15
     INSUFFICIENT = 16
 
-class FCRPC(Enum):
+class FCRPC(IntEnum):
     NONE = 0
     UPDATEFRIEND = 1
     UPDATEIGNORE = 2
@@ -273,7 +273,7 @@ class FCRPC(Enum):
     W_EXT_REQUEST = 8
     W_EXT_RESPONSE = 9
 
-class FCS(Enum):
+class FCS(IntEnum):
     SUBSCRIBE = 1
     SYNC = 2
     SESSION = 10
@@ -291,12 +291,12 @@ class FCS(Enum):
     SENDEVENT = 104
     SENDEVENT2 = 105
 
-class FCSBAN(Enum):
+class FCSBAN(IntEnum):
     NONE = 0
     USER = 1
     IP = 2
 
-class FCTYPE(Enum):
+class FCTYPE(IntEnum):
     CLIENT_DISCONNECTED = -5
     CLIENT_MODELSLOADED = -4
     CLIENT_CONNECTED = -3
@@ -393,7 +393,7 @@ class FCTYPE(Enum):
     DISCONNECTED = 98
     LOGOUT = 99
 
-class FCUCR(Enum):
+class FCUCR(IntEnum):
     VM_LOUNGE = 0
     CREATOR = 0
     VM_MYWEBCAM = 1
@@ -404,7 +404,7 @@ class FCUCR(Enum):
     BASIC = 8
     ALL = 15
 
-class FCUPDATE(Enum):
+class FCUPDATE(IntEnum):
     NONE = 0
     MISSMFC = 1
     NEWTIP = 2
@@ -412,7 +412,7 @@ class FCUPDATE(Enum):
     CAMSCORE = 4
     ROOMFILTER = 5
 
-class FCVIDEO(Enum):
+class FCVIDEO(IntEnum):
     TX_IDLE = 0
     TX_RESET = 1
     TX_AWAY = 2
@@ -431,19 +431,19 @@ class FCVIDEO(Enum):
     OFFLINE = 127
     UNKNOWN = 127
 
-class FCW(Enum):
+class FCW(IntEnum):
     STATE_INIT = 0
     STATE_READY = 1
     STATE_WORKING = 2
     STATE_WAITING = 3
     STATE_INVALID = 4
 
-class FCWINDOW(Enum):
+class FCWINDOW(IntEnum):
     NO_USER_PM = 20
     OPTIONS_ADD_FRIEND = 31
     OPTIONS_ADD_IGNORE = 32
 
-class FCWOPT(Enum):
+class FCWOPT(IntEnum):
     NONE = 0
     ADD = 1
     REMOVE = 2
@@ -463,21 +463,21 @@ class FCWOPT(Enum):
     C_RANK = 4194304
     C_SDATE = 8388608
 
-class HIDE(Enum):
+class HIDE(IntEnum):
     MODEL_GROUPS_AWAY = 1
     MODEL_GROUPS_PRIVATE = 2
     MODEL_GROUPS_GROUP = 4
     MODEL_GROUPS_PUBLIC = 8
 
-class LOUNGE(Enum):
+class LOUNGE(IntEnum):
     MASK_AUTO_CLICK = 1
     MASK_NO_CAMSNAPS = 2
     MASK_LOUNGE_MODE = 4
 
-class MAX(Enum):
+class MAX(IntEnum):
     FCL = 30
 
-class MODEL(Enum):
+class MODEL(IntEnum):
     LIST_ICON_NEW_MODEL = 1
     LIST_ICON_RECOMMEND = 2
     LIST_ICON_POPULAR = 4
@@ -488,16 +488,16 @@ class MODEL(Enum):
     VERSION_REQUIRED = 220130324
     VERSION_MODELWEB = 320110101
 
-class MODELORDER(Enum):
+class MODELORDER(IntEnum):
     NONE = 0
     PVT = 1
     TRUEPVT = 2
     GRP = 4
 
-class MYFREECAMS(Enum):
+class MYFREECAMS(IntEnum):
     NEWS_USER_ID = 481462
 
-class MYWEBCAM(Enum):
+class MYWEBCAM(IntEnum):
     EVERYONE = 0
     ONLYUSERS = 1
     ONLYFRIENDS = 2
@@ -506,24 +506,24 @@ class MYWEBCAM(Enum):
     WHITELIST = 5
     FRIEND_ID = 100
 
-class PLAT(Enum):
+class PLAT(IntEnum):
     MFC = 1
     CAM = 2
 
-class PLATFORM(Enum):
+class PLATFORM(IntEnum):
     NONE = 0
     MFC = 1
     CAMMUNITY = 2
 
-class SERVER(Enum):
+class SERVER(IntEnum):
     VERSION = 20071218
     VERSION_REQUIRED = 20071218
 
-class SESSION(Enum):
+class SESSION(IntEnum):
     ID_START = 75000000
     ID_END = 950000000
 
-class TKOPT(Enum):
+class TKOPT(IntEnum):
     NONE = 0
     START = 1
     STOP = 2
@@ -544,28 +544,28 @@ class TKOPT(Enum):
     TIP_NOCOUNT = 262144
     HDVIDEO = 1048576
 
-class USER(Enum):
+class USER(IntEnum):
     ID_START = 100
     ID_END = 50000000
 
-class USEREXT(Enum):
+class USEREXT(IntEnum):
     NUM = 0
     STRING = 1
     DATA = 2
     STAMP = 3
 
-class V1(Enum):
+class V1(IntEnum):
     FLV = 0
     F4V = 1
 
-class V2(Enum):
+class V2(IntEnum):
     NONE = 2
     FLV = 4
     F4V = 8
     MP4X = 16
     MP4W = 32
 
-class WEBCAM(Enum):
+class WEBCAM(IntEnum):
     SECURITY_EVERYONE = 0
     SECURITY_FRIENDS = 2
     SECURITY_MODELS = 3
@@ -573,14 +573,14 @@ class WEBCAM(Enum):
     SECURITY_ALLOWED = 5
     SECURITY_FRIEND_ID = 100
 
-class WINDOW(Enum):
+class WINDOW(IntEnum):
     MODE_DEFAULT = 0
     MODE_DHTML = 1
     MODE_DESKTOP_DHTML = 1
     MODE_BROWSER = 2
     MODE_MOBILE_DHTML = 2
 
-class WORKER(Enum):
+class WORKER(IntEnum):
     ID_START = 50000000
     ID_END = 75000000
 

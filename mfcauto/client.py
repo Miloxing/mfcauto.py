@@ -100,7 +100,7 @@ class Client(EventEmitter):
                 self.username = packet.smessage
                 log.info("Login handshake completed. Logged in as '{}' with sessionId {}".format(self.username, self.session_id))
         elif fctype in (FCTYPE.DETAILS, FCTYPE.ROOMHELPER, FCTYPE.SESSIONSTATE, FCTYPE.ADDFRIEND, FCTYPE.ADDIGNORE, FCTYPE.CMESG, FCTYPE.PMESG, FCTYPE.TXPROFILE, FCTYPE.USERNAMELOOKUP, FCTYPE.MYCAMSTATE, FCTYPE.MYWEBCAM):
-            if not ((fctype == FCTYPE.DETAILS and packet.nfrom == FCTYPE.TOKENINC.value) or (fctype == FCTYPE.ROOMHELPER and packet.narg2 < 100) or (fctype == FCTYPE.JOINCHAN and packet.narg2 == FCCHAN.PART.value)):
+            if not ((fctype == FCTYPE.DETAILS and packet.nfrom == FCTYPE.TOKENINC) or (fctype == FCTYPE.ROOMHELPER and packet.narg2 < 100) or (fctype == FCTYPE.JOINCHAN and packet.narg2 == FCCHAN.PART)):
                 if isinstance(packet.smessage,dict):
                     lv = packet.smessage.setdefault("lv",None)
                     uid = packet.smessage.setdefault("uid",None)
@@ -131,33 +131,33 @@ class Client(EventEmitter):
                 if self._completedModels and self._completedFriends:
                     self.emit(FCTYPE.CLIENT_MODELSLOADED)
         elif fctype == FCTYPE.EXTDATA:
-            if packet.nto == self.session_id and packet.narg2 == FCWOPT.REDIS_JSON.value:
+            if packet.nto == self.session_id and packet.narg2 == FCWOPT.REDIS_JSON:
                 self._handle_extdata(packet.smessage)
         elif fctype == FCTYPE.MANAGELIST:
             if packet.narg2 > 0 and "rdata" in packet.smessage:
                 rdata = self._process_list(packet.smessage["rdata"])
                 ntype = packet.narg2
-                if ntype == FCL.ROOMMATES.value and isinstance(rdata,list):
+                if ntype == FCL.ROOMMATES and isinstance(rdata,list):
                     self._process_packet(Packet(FCTYPE.METRICS, packet.nfrom, FCTYPE.JOINCHAN, 0, len(rdata)))
                     for record in rdata:
-                        self._process_packet(Packet(FCTYPE.JOINCHAN, packet.nfrom, packet.nto, packet.smessage.setdefault("channel", None), packet.narg2, record))
+                        self._process_packet(Packet(FCTYPE.JOINCHAN, packet.nfrom, packet.nto, packet.smessage.setdefault("channel", None), FCCHAN.JOIN, record))
                     self._process_packet(Packet(FCTYPE.METRICS, packet.nfrom, FCTYPE.JOINCHAN, len(rdata), len(rdata)))
-                elif ntype == FCL.CAMS.value and isinstance(rdata,list):
+                elif ntype == FCL.CAMS and isinstance(rdata,list):
                     self._process_packet(Packet(FCTYPE.METRICS, packet.nfrom, FCTYPE.SESSIONSTATE, 0, len(rdata)))
                     for record in rdata:
                         self._process_packet(Packet(FCTYPE.SESSIONSTATE, packet.nfrom, packet.nto, packet.narg1, record.setdefault("uid", 0), record))
                     self._process_packet(Packet(FCTYPE.METRICS, packet.nfrom, FCTYPE.SESSIONSTATE, len(rdata), len(rdata)))
-                elif ntype == FCL.FRIENDS.value and isinstance(rdata,list):
+                elif ntype == FCL.FRIENDS and isinstance(rdata,list):
                     self._process_packet(Packet(FCTYPE.METRICS, packet.nfrom, FCTYPE.ADDFRIEND, 0, len(rdata)))
                     for record in rdata:
                         self._process_packet(Packet(FCTYPE.ADDFRIEND, packet.nfrom, packet.nto, record.setdefault("uid", 0), packet.narg2, record))
                     self._process_packet(Packet(FCTYPE.METRICS, packet.nfrom, FCTYPE.ADDFRIEND, len(rdata), len(rdata)))
-                elif ntype == FCL.IGNORES.value and isinstance(rdata,list):
+                elif ntype == FCL.IGNORES and isinstance(rdata,list):
                     self._process_packet(Packet(FCTYPE.METRICS, packet.nfrom, FCTYPE.ADDIGNORE, 0, len(rdata)))
                     for record in rdata:
                         self._process_packet(Packet(FCTYPE.ADDIGNORE, packet.nfrom, packet.nto, record.setdefault("uid", 0), packet.narg2, record))
                     self._process_packet(Packet(FCTYPE.METRICS, packet.nfrom, FCTYPE.ADDIGNORE, len(rdata), len(rdata)))
-                elif ntype == FCL.TAGS.value:
+                elif ntype == FCL.TAGS:
                     if isinstance(rdata,dict):
                         self._process_packet(Packet(FCTYPE.TAGS, packet.nfrom, packet.nto, packet.narg1, packet.narg2, rdata))
     def _get_servers(self):
@@ -204,7 +204,7 @@ class Client(EventEmitter):
             raise Exception("Please provide a valid FCTYPE")
         if smsg is None:
             smsg = ''
-        data = struct.pack(">iiiiiii{}s".format(len(smsg)), MAGIC, fctype.value, self.session_id, nto, narg1, narg2, len(smsg), smsg.encode())
+        data = struct.pack(">iiiiiii{}s".format(len(smsg)), MAGIC, fctype, self.session_id, nto, narg1, narg2, len(smsg), smsg.encode())
         log.debug("TxCmd sending: {}".format(data))
         self.transport.write(data)
     def tx_packet(self, packet):
@@ -266,10 +266,10 @@ class Client(EventEmitter):
         #@TODO - Emote encoding
     def joinroom(self, the_id):
         the_id = Client.toroomid(the_id)
-        self.tx_cmd(FCTYPE.JOINCHAN, 0, the_id, FCCHAN.JOIN.value)
+        self.tx_cmd(FCTYPE.JOINCHAN, 0, the_id, FCCHAN.JOIN)
     def leaveroom(self, the_id):
         the_id = Client.toroomid(the_id)
-        self.tx_cmd(FCTYPE.JOINCHAN, 0, the_id, FCCHAN.PART.value)
+        self.tx_cmd(FCTYPE.JOINCHAN, 0, the_id, FCCHAN.PART)
     def query_user(self, user): #Untested, @TODO
         with Client.userQueryLock:
             future = asyncio.Future()

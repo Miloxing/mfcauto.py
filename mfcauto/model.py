@@ -27,14 +27,14 @@ class Model(EventEmitter):
             return [m for m in _knownmodels.values() if func(m)]
     @staticmethod
     def _default_session(uid):
-        return {"sid":0, "uid":uid, "vs": STATE.Offline.value, "rc": 0}
+        return {"sid":0, "uid":uid, "vs": STATE.Offline, "rc": 0}
     @property
     def bestsessionid(self):
         with self._lock:
             sessionidtouse = 0
             foundmodelsoftware = False
             for (sessionid, sessionobj) in self.knownsessions.items():
-                if sessionobj.setdefault("vs", STATE.Offline.value) == STATE.Offline.value:
+                if sessionobj.setdefault("vs", STATE.Offline) == STATE.Offline:
                     continue
                 usethis = False
                 if sessionobj.setdefault("model_sw", False):
@@ -57,7 +57,7 @@ class Model(EventEmitter):
     def in_true_private(self):
         """True if the model is in a true private, False if not"""
         with self._lock:
-            if self.bestsession["vs"] == STATE.Private.value and "truepvt" in self.bestsession and self.bestsession["truepvt"]:
+            if self.bestsession["vs"] == STATE.Private and "truepvt" in self.bestsession and self.bestsession["truepvt"]:
                 return True
             else:
                 return False
@@ -94,10 +94,10 @@ class Model(EventEmitter):
                             if key == "m" and key2 == "flags":
                                 #@BUGBUG - I'm just realizing that the Node version doesn't fire callbacks for individual flag changes... @TODO need to do it here too...
                                 flags = payload[key][key2]
-                                currentsession["truepvt"] = bool(flags & FCOPT.TRUEPVT.value)
-                                currentsession["guests_muted"] = bool(flags & FCOPT.GUESTMUTE.value)
-                                currentsession["basics_muted"] = bool(flags & FCOPT.BASICMUTE.value)
-                                currentsession["model_sw"] = bool(flags & FCOPT.MODELSW.value)
+                                currentsession["truepvt"] = bool(flags & FCOPT.TRUEPVT)
+                                currentsession["guests_muted"] = bool(flags & FCOPT.GUESTMUTE)
+                                currentsession["basics_muted"] = bool(flags & FCOPT.BASICMUTE)
+                                currentsession["model_sw"] = bool(flags & FCOPT.MODELSW)
                                 #@TODO - Build a running set of leaf keys and assert that we've never seen this leaf key before, in other words, validate that this whole dict flattening approach is not losing information
                     else:
                         callbackstack.append((key, self, None if not key in previoussession else previoussession[key], payload[key]))
@@ -128,10 +128,10 @@ class Model(EventEmitter):
     def reset(self):
         with self._lock:
             for key in set(self.knownsessions.keys()):
-                if key != self.bestsessionid and self.knownsessions[key]["vs"] != FCVIDEO.OFFLINE.value:
-                    self.knownsessions[key]["vs"] = FCVIDEO.OFFLINE.value
+                if key != self.bestsessionid and self.knownsessions[key]["vs"] != FCVIDEO.OFFLINE:
+                    self.knownsessions[key]["vs"] = FCVIDEO.OFFLINE
             from .packet import Packet
-            blank = Packet(FCTYPE.SESSIONSTATE, 0, 0, 0, 0, {"sid": self.bestsessionid, "uid": self.uid, "vs": FCVIDEO.OFFLINE.value})
+            blank = Packet(FCTYPE.SESSIONSTATE, 0, 0, 0, 0, {"sid": self.bestsessionid, "uid": self.uid, "vs": FCVIDEO.OFFLINE})
             self.mergepacket(blank)
     @staticmethod
     def reset_all():
