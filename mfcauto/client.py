@@ -171,9 +171,10 @@ class Client(EventEmitter):
         """Connects to an MFC chat server and optionally logs in"""
         self._get_servers()
         selected_server = random.choice(self.server_config['chat_servers'])
+        self.server_config['chat_servers'].remove(selected_server)
         self._logged_in = login
         log.info("Connecting to MyFreeCams chat server {}...".format(selected_server))
-        (self.transport, self.protocol) = await self.loop.create_connection(lambda: MFCProtocol(self.loop, self), '{}.myfreecams.com'.format(selected_server), 8100)
+        (self.transport, self.protocol) = await self.loop.create_connection(lambda: MFCProtocol(self.loop, self), '{}.myfreecams.com'.format(random.choice(self.server_config['chat_servers'])), 8100)
         if login:
             self.tx_cmd(FCTYPE.LOGIN, 0, 20071025, 0, "{}:{}".format(self.username, self.password))
             if self.keepalive is None:
@@ -192,7 +193,7 @@ class Client(EventEmitter):
             self.username = "guest"
         if not self._manual_disconnect:
             print("Disconnected from MyFreeCams.  Reconnecting in 30 seconds...")
-            self.loop.call_later(30, self.connect, self._logged_in)
+            self.loop.call_later(30, lambda: asyncio.async(self.connect(self._logged_in)))
         else:
             self.loop.stop()
         self._manual_disconnect = False
