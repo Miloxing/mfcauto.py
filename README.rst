@@ -16,7 +16,7 @@ This package requires Python 3.5 or later.
 .. code-block:: bash
 
     # Install or upgrade to the latest version of mfcauto.py
-    $ pip install --upgrade git+https://github.com/ZombieAlex/mfcauto.py@master
+    $ pip install --upgrade git+https://github.com/beaston02/mfcauto.py@master
 
 To install a specific commit or tag, refer to the `pip documentation`_.
 
