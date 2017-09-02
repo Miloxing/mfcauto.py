@@ -6,6 +6,9 @@ import asyncio
 import random
 import struct
 import traceback
+import gevent
+import requests
+import blessings
 from threading import RLock
 from .event_emitter import EventEmitter
 from .packet import Packet
@@ -16,6 +19,7 @@ from async_timeout import timeout
 
 __all__ = ['Client', 'SimpleClient']
 
+term = blessings.Terminal()
 class MFCProtocol(asyncio.Protocol):
     """asyncio.Protocol handler for MFC"""
     def __init__(self, loop, client):
@@ -89,17 +93,20 @@ class Client(EventEmitter):
         self.emit(packet.fctype, packet)
         self.emit(FCTYPE.ANY, packet)
     def _process_packet(self, packet):
+        timeout = gevent.Timeout(5)
+        timeout.start()
         """Merges the given packet into our global state @TODO - Not sure if this should really be a separate function from packet_received"""
         fctype = packet.fctype
         if fctype == FCTYPE.LOGIN:
             if packet.narg1 != 0:
-                log.info("Login failed for user '{}' password '{}'".format(self.username, self.password))
+                print("Login failed for user '{}' password '{}'".format(self.username, self.password))
                 raise Exception("Login failed")
             else:
                 self.session_id = packet.nto
                 self.uid = packet.narg2
                 self.username = packet.smessage
-                log.info("Login handshake completed. Logged in as '{}' with sessionId {}".format(self.username, self.session_id))
+                with term.location(0, 2):
+                    print("Login handshake completed. Logged in as '{}' with sessionId {}".format(self.username, self.session_id))
         elif fctype in (FCTYPE.DETAILS, FCTYPE.ROOMHELPER, FCTYPE.SESSIONSTATE, FCTYPE.ADDFRIEND, FCTYPE.ADDIGNORE, FCTYPE.CMESG, FCTYPE.PMESG, FCTYPE.TXPROFILE, FCTYPE.USERNAMELOOKUP, FCTYPE.MYCAMSTATE, FCTYPE.MYWEBCAM):
             if not ((fctype == FCTYPE.DETAILS and packet.nfrom == FCTYPE.TOKENINC) or (fctype == FCTYPE.ROOMHELPER and packet.narg2 < 100) or (fctype == FCTYPE.JOINCHAN and packet.narg2 == FCCHAN.PART)):
                 if isinstance(packet.smessage,dict):
@@ -179,7 +186,8 @@ class Client(EventEmitter):
             self.server_config['chat_servers'] = [x for x in self.server_config['chat_servers'] if x not in nonWebSocketServers]
             selected_server = random.choice(self.server_config['chat_servers'])
             self._logged_in = login
-            log.info("Connecting to MyFreeCams chat server {}...".format(selected_server))
+            with term.location(0,1):
+                print("Connecting to MyFreeCams chat server {}...".format(selected_server))
             (self.transport, self.protocol) = await self.loop.create_connection(lambda: MFCProtocol(self.loop, self), '{}.myfreecams.com'.format(selected_server), 8100)
             if login:
                 self.tx_cmd(FCTYPE.LOGIN, 0, 20071025, 0, "{}:{}".format(self.username, self.password))
@@ -198,7 +206,8 @@ class Client(EventEmitter):
         if self.password == "guest" and self.username.startswith("Guest"):
             self.username = "guest"
         if not self._manual_disconnect:
-            print("Disconnected from MyFreeCams.  Reconnecting in 30 seconds...")
+            with term.location(0,2):
+                print("Disconnected from MyFreeCams.  Reconnecting in 30 seconds...")
             self.loop.call_later(30, lambda: asyncio.async(self.connect(self._logged_in)))
         else:
             self.loop.stop()
@@ -222,10 +231,9 @@ class Client(EventEmitter):
             for name in ["respkey", "type", "opts", "serv"]:
                 if name in extdata:
                     url += "{}={}&".format(name, extdata.setdefault(name, None))
-            with urllib.request.urlopen(url) as req:
-                contents = json.loads(req.read().decode('utf-8'))
-                packet = Packet(extdata["msg"]["type"], extdata["msg"]["from"], extdata["msg"]["to"], extdata["msg"]["arg1"], extdata["msg"]["arg2"], contents)
-                self._process_packet(packet)
+            contents = json.loads(requests.get(url).text)
+            packet = Packet(extdata["msg"]["type"], extdata["msg"]["from"], extdata["msg"]["to"], extdata["msg"]["arg1"], extdata["msg"]["arg2"], contents)
+            self._process_packet(packet)
     def _process_list(self, data):
         if (type(data) == list):
             result = []
