@@ -17,7 +17,6 @@ from .packet import Packet
 from .constants import MAGIC, FCTYPE, FCCHAN, FCWOPT, FCL
 from .model import Model
 from .utils import log
-from async_timeout import timeout
 
 __all__ = ['Client', 'SimpleClient']
 try:
@@ -97,8 +96,6 @@ class Client(EventEmitter):
         self.emit(packet.fctype, packet)
         self.emit(FCTYPE.ANY, packet)
     def _process_packet(self, packet):
-        timeout = gevent.Timeout(5)
-        timeout.start()
         """Merges the given packet into our global state @TODO - Not sure if this should really be a separate function from packet_received"""
         fctype = packet.fctype
         if fctype == FCTYPE.LOGIN:
@@ -188,23 +185,22 @@ class Client(EventEmitter):
         self.keepalive = self.loop.call_later(120, self._ping_loop)
     async def connect(self, login=True):
         nonWebSocketServers = ['xchat50', 'xchat51', 'xchat52', 'xchat53', 'xchat54']
-        async with timeout(5):
-            """Connects to an MFC chat server and optionally logs in"""
-            self._get_servers()
-            self.server_config['chat_servers'] = [x for x in self.server_config['chat_servers'] if x not in nonWebSocketServers]
-            selected_server = random.choice(self.server_config['chat_servers'])
-            self._logged_in = login
-            if term:
-                with term.location(0,1):
-                   print("Connecting to MyFreeCams chat server {}...".format(selected_server))
-            else:
-                print("Connecting to MyFreeCams chat server {}...".format(selected_server))
-            (self.transport, self.protocol) = await self.loop.create_connection(lambda: MFCProtocol(self.loop, self), '{}.myfreecams.com'.format(selected_server), 8100)
-            if login:
-                self.tx_cmd(FCTYPE.LOGIN, 0, 20071025, 0, "{}:{}".format(self.username, self.password))
-                if self.keepalive is None:
-                    self.keepalive = self.loop.call_later(20, self._ping_loop)
-            self.loop.call_soon(self.emit,FCTYPE.CLIENT_CONNECTED)
+        """Connects to an MFC chat server and optionally logs in"""
+        self._get_servers()
+        self.server_config['chat_servers'] = [x for x in self.server_config['chat_servers'] if x not in nonWebSocketServers]
+        selected_server = random.choice(self.server_config['chat_servers'])
+        self._logged_in = login
+        if term:
+            with term.location(0,1):
+               print("Connecting to MyFreeCams chat server {}...".format(selected_server))
+        else:
+            print("Connecting to MyFreeCams chat server {}...".format(selected_server))
+        (self.transport, self.protocol) = await self.loop.create_connection(lambda: MFCProtocol(self.loop, self), '{}.myfreecams.com'.format(selected_server), 8100)
+        if login:
+            self.tx_cmd(FCTYPE.LOGIN, 0, 20071025, 0, "{}:{}".format(self.username, self.password))
+            if self.keepalive is None:
+                self.keepalive = self.loop.call_later(20, self._ping_loop)
+        self.loop.call_soon(self.emit,FCTYPE.CLIENT_CONNECTED)
     def disconnect(self):
         """Disconnects from the MFC chat server and closes the underlying transport"""
         self._manual_disconnect = True
