@@ -8,7 +8,9 @@ import struct
 import traceback
 import gevent
 import requests
-import blessings
+import os
+if not os.name == 'nt':
+    import blessings
 from threading import RLock
 from .event_emitter import EventEmitter
 from .packet import Packet
@@ -18,8 +20,10 @@ from .utils import log
 from async_timeout import timeout
 
 __all__ = ['Client', 'SimpleClient']
-
-term = blessings.Terminal()
+try:
+    term = blessings.Terminal()
+except:
+    term = False
 class MFCProtocol(asyncio.Protocol):
     """asyncio.Protocol handler for MFC"""
     def __init__(self, loop, client):
@@ -105,8 +109,12 @@ class Client(EventEmitter):
                 self.session_id = packet.nto
                 self.uid = packet.narg2
                 self.username = packet.smessage
-                with term.location(0, 2):
-                    print("Login handshake completed. Logged in as '{}' with sessionId {}".format(self.username, self.session_id))
+                if term:
+                   with term.location(0, 2):
+                        print("Login handshake completed. Logged in as '{}' with sessionId {}".format(self.username, self.session_id))
+                else:
+                    print("Login handshake completed. Logged in as '{}' with sessionId {}".format(self.username,
+                                                                                                  self.session_id))
         elif fctype in (FCTYPE.DETAILS, FCTYPE.ROOMHELPER, FCTYPE.SESSIONSTATE, FCTYPE.ADDFRIEND, FCTYPE.ADDIGNORE, FCTYPE.CMESG, FCTYPE.PMESG, FCTYPE.TXPROFILE, FCTYPE.USERNAMELOOKUP, FCTYPE.MYCAMSTATE, FCTYPE.MYWEBCAM):
             if not ((fctype == FCTYPE.DETAILS and packet.nfrom == FCTYPE.TOKENINC) or (fctype == FCTYPE.ROOMHELPER and packet.narg2 < 100) or (fctype == FCTYPE.JOINCHAN and packet.narg2 == FCCHAN.PART)):
                 if isinstance(packet.smessage,dict):
@@ -186,7 +194,10 @@ class Client(EventEmitter):
             self.server_config['chat_servers'] = [x for x in self.server_config['chat_servers'] if x not in nonWebSocketServers]
             selected_server = random.choice(self.server_config['chat_servers'])
             self._logged_in = login
-            with term.location(0,1):
+            if term:
+                with term.location(0,1):
+                   print("Connecting to MyFreeCams chat server {}...".format(selected_server))
+            else:
                 print("Connecting to MyFreeCams chat server {}...".format(selected_server))
             (self.transport, self.protocol) = await self.loop.create_connection(lambda: MFCProtocol(self.loop, self), '{}.myfreecams.com'.format(selected_server), 8100)
             if login:
@@ -206,7 +217,10 @@ class Client(EventEmitter):
         if self.password == "guest" and self.username.startswith("Guest"):
             self.username = "guest"
         if not self._manual_disconnect:
-            with term.location(0,2):
+            if term:
+                with term.location(0,2):
+                    print("Disconnected from MyFreeCams.  Reconnecting in 30 seconds...")
+            else:
                 print("Disconnected from MyFreeCams.  Reconnecting in 30 seconds...")
             self.loop.call_later(30, lambda: asyncio.async(self.connect(self._logged_in)))
         else:
