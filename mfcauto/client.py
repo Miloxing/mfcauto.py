@@ -218,7 +218,10 @@ class Client(EventEmitter):
                     print("Disconnected from MyFreeCams.  Reconnecting in 30 seconds...")
             else:
                 print("Disconnected from MyFreeCams.  Reconnecting in 30 seconds...")
-            self.loop.call_later(30, lambda: asyncio.async(self.connect(self._logged_in)))
+            if hasattr(asyncio, 'ensure_future'):
+                self.loop.call_later(30, lambda: asyncio.ensure_future(self.connect(self._logged_in)))
+            else:
+                self.loop.call_later(30, lambda: asyncio.async(self.connect(self._logged_in)))
         else:
             self.loop.stop()
         self._manual_disconnect = False
